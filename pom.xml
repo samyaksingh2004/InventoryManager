@@ -16,6 +16,18 @@
 	<properties>
 		<java.version>17</java.version>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>libraries-bom</artifactId>
+			<version>26.40.0</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+		</dependencies>
+  	</dependencyManagement>
 	
 	<dependencies>
 		<dependency>
@@ -32,6 +44,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
     	</dependency>
+
+		<dependency>
+      		<groupId>com.google.cloud</groupId>
+      		<artifactId>google-cloud-datastore</artifactId>
+   		</dependency>
 
 	</dependencies>
 

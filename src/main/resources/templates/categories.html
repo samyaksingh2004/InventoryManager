@@ -34,13 +34,48 @@
 <body>
 <div th:insert="~{navbar :: navbar}"></div>
 
-<div class="dropdown">
-  <button onclick="myFunction()" class="dropbtn">Dropdown</button>
-  <div id="myDropdown" class="dropdown-content">
-    <a href="#">Link 1</a>
-    <a href="#">Link 2</a>
-    <a href="#">Link 3</a>
-  </div>
+<!--<table>
+  <thead>
+    <tr>
+      <th> Categories </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr th:each="Category, itemStat : *{l}">
+      <td><input th:field="*{l[__${itemStat.index}__].getName()}" /></td>
+    </tr>
+  </tbody>
+</table>-->
+
+<!--<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr th:each="category : ${categories}">
+      <td th:text="${category.name}"></td>
+    </tr>
+  </tbody>
+</table>-->
+
+
+<div class="container">
+<h3> Select Category </h3>
+
+<select class="form-select">
+  <option th:each="category : ${categories}" th:value="${category.name}" th:text="${category.name}"></option>
+</select>
+</div>
+
+<div class="container" id="newCategoryButton">
+  <form action="/newcategory" method="post">
+    <label>Enter New Category : </label>
+    <input type="name" placeholder="New Category" name="name">
+
+    <button type="submit"> Submit </button>
+  </form>
 </div>
 
 <div class="container">
