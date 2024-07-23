@@ -9,6 +9,10 @@ import org.springframework.ui.Model;
 
 import edu.manipal.logistics.InventoryManager.business.database.GoogleDatastore;
 import edu.manipal.logistics.InventoryManager.business.entities.Category;
+import edu.manipal.logistics.InventoryManager.business.entities.InventoryItem;
+
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @Controller
 public class myController {
@@ -45,16 +49,50 @@ public class myController {
 		return "redirect:/categories";
 	}
 	
-	
 	@GetMapping("/itemList")
 	public String itemListPage() {
 		return "itemList";
 	}
 	
 	@GetMapping("/inventoryList")
-	public String inventoryListPage() {
+	public String inventoryListPage(Model model) {
+
+		GoogleDatastore gd = new GoogleDatastore();
+		List<InventoryItem> items = gd.getAllInventoryItems();
+		model.addAttribute("items", items);
+
 		return "inventoryList";
 	}
 
+	@PostMapping("/newItem")
+	public String newItem(@RequestParam String itemKey , @RequestParam Long quantity) {
+
+		if(itemKey.length() > 0 && quantity > 0){
+			InventoryItem ii = new InventoryItem();
+			ii.setItemKey(itemKey);
+			ii.setQuantity(quantity);
+			GoogleDatastore gd = new GoogleDatastore();
+			gd.saveInventoryItem(ii);
+		}
+		
+		return "redirect:/inventoryList";
+	}
+
+	@PostMapping("/deleteItem")
+	public String deleteItem(@RequestParam String deleteKey) {
+		
+		GoogleDatastore gd = new GoogleDatastore();
+		gd.deleteInventoryItem(deleteKey);
+
+		return "redirect:/inventoryList";
+	}
+
+	@PostMapping("/editQuantity")
+	public String editQuantity(@RequestBody String entity) {
+		//TODO: process POST request
+		
+		return entity;
+	}
+	
 	
 }

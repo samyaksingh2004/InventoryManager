@@ -52,6 +52,7 @@ public class OrderItem {
     public void setEntity(Entity ent){
         setCategoryKey(ent.getString("categoryKey"));
         setItemKey(ent.getString("itemKey"));
-        setGiven(ent.getLong("quantity"));
+        setQuantity(ent.getLong("quantity"));
+        setGiven(ent.getLong("given"));
     }
 }

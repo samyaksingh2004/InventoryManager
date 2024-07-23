@@ -91,6 +91,29 @@ public class GoogleDatastore {
         return null;
     }
 
+	public void deleteCategory(String name){
+		try{
+			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
+			String kind = Category.class.getSimpleName();
+
+			PropertyFilter filter = StructuredQuery.PropertyFilter.eq("name" , name);
+			Query<Entity> query = 
+				Query.newEntityQueryBuilder()
+						.setKind(kind)
+						.setFilter(filter)
+						.build();
+			QueryResults<Entity> entities = datastore.run(query);	
+			
+			if(entities.hasNext()){
+				Entity e = entities.next();
+				datastore.delete(e.getKey());
+			}
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+
 	public void saveInventoryItem(InventoryItem ii){
 		try{
 			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
@@ -161,5 +184,28 @@ public class GoogleDatastore {
         }
 
         return null;
+	}
+
+	public void deleteInventoryItem(String itemKey){
+		try{
+			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
+			String kind = InventoryItem.class.getSimpleName();
+
+			PropertyFilter filter = StructuredQuery.PropertyFilter.eq("itemKey" , itemKey);
+			Query<Entity> query = 
+				Query.newEntityQueryBuilder()
+						.setKind(kind)
+						.setFilter(filter)
+						.build();
+			QueryResults<Entity> entities = datastore.run(query);	
+			
+			if(entities.hasNext()){
+				Entity e = entities.next();
+				datastore.delete(e.getKey());
+			}
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 }

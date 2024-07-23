@@ -6,7 +6,64 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
   <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>-->
+
+  <script>
+    function findName() {
+      var input, filter, table, tr, td, i, txtValue;
+      input = document.getElementById("myInput");
+      filter = input.value.toUpperCase();
+      table = document.getElementById("list");
+      tr = table.getElementsByTagName("tr");
+      for (i = 0; i < tr.length; i++) {
+        td = tr[i].getElementsByTagName("td")[0];
+        if (td) {
+          txtValue = td.textContent || td.innerText;
+          if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          }
+        }       
+      }
+    }
+    </script>
+
 </head>
 <body>
 <div th:insert="~{navbar :: navbar}"></div>
 
+<div class="container">
+  <input type="text" id="myInput" onkeyup="findName()" placeholder="Search for names.." class="form-control">
+</div>
+
+<div class="container" id="list">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Quantity</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="item : ${items}">
+        <td th:text="${item.itemKey}"></td>
+        <td th:text="${item.quantity}"></td>
+        <td>
+          <form action="/deleteItem" method="post">
+            <input type="hidden" th:value="${item.itemKey}" name="deleteKey"/>
+            <button type="submit">&#9940</button>
+          </form>
+        </td>
+      </tr>
+      <tr>
+        <form action="/newItem" method="post">
+          <td><input type="name" placeholder="Enter name and unit" name="itemKey"></td>
+          <td><input type="number" placeholder="Enter quantity" name="quantity"></td>
+          <td><button type="submit"> Add Item </button></td>
+        </form>
+      </tr>
+      </form>
+    </tbody>
+  </table>
+</div>
