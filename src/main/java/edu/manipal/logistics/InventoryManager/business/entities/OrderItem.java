@@ -2,14 +2,16 @@ package edu.manipal.logistics.InventoryManager.business.entities;
 
 import com.google.cloud.datastore.Entity;
 
+import edu.manipal.logistics.InventoryManager.business.database.GoogleDatastore;
+
 public class OrderItem {
     private String categoryKey;
     private String itemKey;
-    private Long quantity;
+    private Long requested;
     private Long given;
 
-    OrderItem(){
-        quantity = 0L;
+    public OrderItem(){
+        requested = 0L;
         given = 0L;
     }
 
@@ -18,15 +20,19 @@ public class OrderItem {
     }
 
     public void setItemKey(String itemKey){
-        if(this.itemKey != null){
-
+        GoogleDatastore gd = new GoogleDatastore();
+        if(!gd.existsInventoryItem(itemKey)){
+            InventoryItem ii = new InventoryItem();
+            ii.setItemKey(itemKey);
+            gd.saveInventoryItem(ii);
         }
         // create new inventoryItem
+
         this.itemKey = itemKey;
     }
 
-    public void setQuantity(Long quantity){
-        this.quantity = quantity;
+    public void setRequested(Long requested){
+        this.requested = requested;
     }
 
     public void setGiven(Long given){
@@ -41,8 +47,8 @@ public class OrderItem {
         return itemKey;
     }
 
-    public Long getQuantity(){
-        return quantity;
+    public Long getRequested(){
+        return requested;
     }
 
     public Long getGiven(){
@@ -52,7 +58,7 @@ public class OrderItem {
     public void setEntity(Entity ent){
         setCategoryKey(ent.getString("categoryKey"));
         setItemKey(ent.getString("itemKey"));
-        setQuantity(ent.getLong("quantity"));
+        setRequested(ent.getLong("requested"));
         setGiven(ent.getLong("given"));
     }
 }

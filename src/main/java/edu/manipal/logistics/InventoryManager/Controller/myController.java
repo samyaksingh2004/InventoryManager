@@ -10,7 +10,7 @@ import org.springframework.ui.Model;
 import edu.manipal.logistics.InventoryManager.business.database.GoogleDatastore;
 import edu.manipal.logistics.InventoryManager.business.entities.Category;
 import edu.manipal.logistics.InventoryManager.business.entities.InventoryItem;
-
+import edu.manipal.logistics.InventoryManager.business.entities.OrderItem;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
@@ -48,6 +48,24 @@ public class myController {
 
 		return "redirect:/categories";
 	}
+
+	@PostMapping("/selectCategory")
+	public String selectCategory(@RequestParam String name , Model model) {
+		
+		GoogleDatastore gd = new GoogleDatastore();
+		List<OrderItem> orderItems = gd.getAllItemsInCategory(name);
+		model.addAttribute("orderItems", orderItems);
+		
+		return "redirect:/categories";
+	}
+
+	@PostMapping("/newOrderItem")
+	public String postMethodName(@RequestBody String entity) {
+		
+		return "redirect:/categories";
+	}
+	
+	
 	
 	@GetMapping("/itemList")
 	public String itemListPage() {
@@ -86,13 +104,4 @@ public class myController {
 
 		return "redirect:/inventoryList";
 	}
-
-	@PostMapping("/editQuantity")
-	public String editQuantity(@RequestBody String entity) {
-		//TODO: process POST request
-		
-		return entity;
-	}
-	
-	
 }

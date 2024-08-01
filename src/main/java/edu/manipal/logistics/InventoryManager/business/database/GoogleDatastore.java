@@ -5,7 +5,6 @@ import com.google.cloud.datastore.Entity;
 import java.util.List;
 import java.util.ArrayList;
 
-
 import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.DatastoreOptions;
 import com.google.cloud.datastore.Key;
@@ -207,5 +206,120 @@ public class GoogleDatastore {
 		catch(Exception e){
 			e.printStackTrace();
 		}
+	}
+
+	public boolean existsInventoryItem(String itemKey){
+		try{
+			InventoryItem ii = getInventoryItem(itemKey);
+			if(ii == null)
+				return false;
+			return true;
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public void saveNewOrderItem(OrderItem oi){
+		try{
+			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
+			String kind = oi.getClass().getSimpleName();
+			KeyFactory keyFactory = datastore.newKeyFactory().setKind(kind);
+			
+			Key key;
+			key = datastore.allocateId(keyFactory.newKey());
+
+        	Entity entity = Entity.newBuilder(key)
+				.set("categoryKey", oi.getCategoryKey())
+				.set("itemKey" , oi.getItemKey())
+				.set("requested" , oi.getRequested())
+				.set("given" , oi.getGiven())
+				.build();
+
+        	datastore.put(entity);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/*public void saveOldOrderItem(OrderItem oi){
+		try{
+			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
+			String kind = oi.getClass().getSimpleName();
+			KeyFactory keyFactory = datastore.newKeyFactory().setKind(kind);
+
+        	Entity entity = Entity.newBuilder()
+				.set("categoryKey", oi.getCategoryKey())
+				.set("itemKey" , oi.getItemKey())
+				.set("requested" , oi.getRequested())
+				.set("given" , oi.getGiven())
+				.build();
+
+        	datastore.put(entity);
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+	}*/
+
+	public List<OrderItem> getAllItemsInCategory(String categoryKey){
+		try{
+			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
+			String kind = OrderItem.class.getSimpleName();
+
+			PropertyFilter filter = StructuredQuery.PropertyFilter.eq("categoryKey", categoryKey);
+			Query<Entity> query = 
+				Query.newEntityQueryBuilder()
+						.setKind(kind)
+						.setFilter(filter)
+						.build();
+			QueryResults<Entity> entities = datastore.run(query);
+
+			List<OrderItem> output = new ArrayList<OrderItem>();
+			while(entities.hasNext()){
+				OrderItem oi = new OrderItem();
+				oi.setEntity(entities.next());
+				output.add(oi);
+			}
+
+			return output;
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	public Long getNumberOfItemRequested(String itemKey){
+		// try to write a query to get the sum
+		try{
+			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
+			String kind = OrderItem.class.getSimpleName();
+
+			PropertyFilter filter = StructuredQuery.PropertyFilter.eq("itemKey", itemKey);
+			Query<Entity> query = 
+				Query.newEntityQueryBuilder()
+						.setKind(kind)
+						.setFilter(filter)
+						.build();
+			QueryResults<Entity> entities = datastore.run(query);
+
+			Long count = 0L;
+			while(entities.hasNext()){
+				OrderItem oi = new OrderItem();
+				oi.setEntity(entities.next());
+				count += oi.getRequested();
+			}
+
+			return count;
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+
+		return 0L;
 	}
 }

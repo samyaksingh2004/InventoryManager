@@ -7,37 +7,78 @@
   <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>-->
 
-  <script>
-    function findName() {
-      var input, filter, table, tr, td, i, txtValue;
-      input = document.getElementById("myInput");
-      filter = input.value.toUpperCase();
-      table = document.getElementById("list");
-      tr = table.getElementsByTagName("tr");
-      for (i = 0; i < tr.length; i++) {
-        td = tr[i].getElementsByTagName("td")[0];
-        if (td) {
-          txtValue = td.textContent || td.innerText;
-          if (txtValue.toUpperCase().indexOf(filter) > -1) {
-            tr[i].style.display = "";
-          } else {
-            tr[i].style.display = "none";
-          }
-        }       
-      }
+  <style>
+    .hidden-display {
+      display: none;
     }
-    </script>
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      function findName() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("myInput");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("inventoryItemList");
+        tr = table.getElementsByTagName("tr");
+        for (i = 0; i < tr.length; i++) {
+          td = tr[i].getElementsByTagName("td")[0];
+          if (td) {
+            txtValue = td.textContent || td.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+              tr[i].style.display = "";
+            } else {
+              tr[i].style.display = "none";
+            }
+          }
+        }
+      }
+
+      document.getElementById("myInput").addEventListener('keyup', findName);
+
+      document.querySelectorAll(".editQuantity").forEach(function(button) {
+        button.addEventListener('click', function() {
+          var row = this.closest('tr');
+          var quantityRow = row.querySelector('.quantityRow');
+          var editForm = row.querySelector('.editForm');
+          quantityRow.classList.add('hidden-display');
+          editForm.classList.remove('hidden-display');
+        });
+      });
+
+      document.querySelectorAll(".editFormSubmit").forEach(function(button) {
+        button.addEventListener('click', function() {
+          var row = this.closest('tr');
+          var quantityRow = row.querySelector('.quantityRow');
+          var editForm = row.querySelector('.editForm');
+          editForm.classList.add('hidden-display');
+          quantityRow.classList.remove('hidden-display');
+        });
+      });
+
+      function showDeleteConfirmation(event) {
+        if (!confirm("Are you sure you want to delete this item?")) {
+          event.preventDefault(); // Prevent form submission if user cancels
+        }
+      }
+
+      // Attach the confirmation function to delete buttons
+      document.querySelectorAll('form[action="/deleteItem"]').forEach(function(form) {
+        form.addEventListener('submit', showDeleteConfirmation);
+      });
+    });
+  </script>
 
 </head>
 <body>
 <div th:insert="~{navbar :: navbar}"></div>
 
 <div class="container">
-  <input type="text" id="myInput" onkeyup="findName()" placeholder="Search for names.." class="form-control">
+  <input type="text" id="myInput" placeholder="Search for names.." class="form-control">
 </div>
 
-<div class="container" id="list">
-  <table class="table table-striped">
+<div class="container">
+  <table class="table table-striped" id="inventoryItemList">
     <thead>
       <tr>
         <th>Item</th>
@@ -48,22 +89,32 @@
     <tbody>
       <tr th:each="item : ${items}">
         <td th:text="${item.itemKey}"></td>
-        <td th:text="${item.quantity}"></td>
+        <td class="quantityRow" th:text="${item.quantity}"></td>
+        <td class="editForm hidden-display">
+          <form action="/newItem" method="post">
+            <input type="hidden" th:value="${item.itemKey}" name="itemKey"/>
+            <input type="number" th:value="${item.quantity}" name="quantity" required>
+            <button type="submit" class="editFormSubmit">&#x2705;</button>
+          </form>
+        </td>
         <td>
           <form action="/deleteItem" method="post">
             <input type="hidden" th:value="${item.itemKey}" name="deleteKey"/>
-            <button type="submit">&#9940</button>
+            <button type="submit">&#9940;</button>
+            <button type="button" class="editQuantity">&#x1F58B;&#xFE0F;</button>
           </form>
         </td>
       </tr>
       <tr>
         <form action="/newItem" method="post">
-          <td><input type="name" placeholder="Enter name and unit" name="itemKey"></td>
-          <td><input type="number" placeholder="Enter quantity" name="quantity"></td>
-          <td><button type="submit"> Add Item </button></td>
+          <td><input type="text" placeholder="Enter name and unit" name="itemKey" required></td>
+          <td><input type="number" placeholder="Enter quantity" name="quantity" required></td>
+          <td><button type="submit">Add Item</button></td>
         </form>
       </tr>
-      </form>
     </tbody>
   </table>
 </div>
+
+</body>
+</html>
