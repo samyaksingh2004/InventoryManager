@@ -10,23 +10,7 @@
 	<script>
 		/* When the user clicks on the button, 
 		toggle between hiding and showing the dropdown content */
-		function myFunction() {
-			document.getElementById("myDropdown").classList.toggle("show");
-		}
-		
-		// Close the dropdown if the user clicks outside of it
-		window.onclick = function(event) {
-			if (!event.target.matches('.dropbtn')) {
-				var dropdowns = document.getElementsByClassName("dropdown-content");
-				var i;
-				for (i = 0; i < dropdowns.length; i++) {
-					var openDropdown = dropdowns[i];
-					if (openDropdown.classList.contains('show')) {
-						openDropdown.classList.remove('show');
-					}
-				}
-			}
-		}
+
 	</script>
 
 
@@ -34,73 +18,87 @@
 <body>
 <div th:insert="~{navbar :: navbar}"></div>
 
-<!--<table>
-  <thead>
-    <tr>
-      <th> Categories </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr th:each="Category, itemStat : *{l}">
-      <td><input th:field="*{l[__${itemStat.index}__].getName()}" /></td>
-    </tr>
-  </tbody>
-</table>-->
-
-<!--<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr th:each="category : ${categories}">
-      <td th:text="${category.name}"></td>
-    </tr>
-  </tbody>
-</table>-->
-
-
 <div class="container">
-  <h3> Select Category </h3>
-
-  <select class="form-select">
-    <form>
+  <p> Select a Category </p>
+  <form action="/selectCategory" method="post">
+    <select class="form-select" name="name">
       <option th:each="category : ${categories}" th:value="${category.name}" th:text="${category.name}"></option>
-    </form>
-  </select>
+    </select>
+    <button type="submit"> Enter </button>
+  </form>
 </div>
+
+<!--<div class="container">
+  <h3>Categories</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="category : ${categories}">
+        <td th:text="${category.name}"></td>
+        <td>
+          <form action="/deleteCategory" method="post">
+            <input type="hidden" th:value="${category.name}" name="name"/>
+            <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+-->
 
 <div class="container" id="newCategoryButton">
   <form action="/newcategory" method="post">
     <label>Enter New Category : </label>
     <input type="name" placeholder="New Category" name="name">
-
     <button type="submit"> Submit </button>
   </form>
 </div>
 
 <div class="container">
-  <h2>Striped Rows</h2>
-  <p>The .table-striped class adds zebra-stripes to a table:</p>            
+
+  <h3 th:text = "${selectedCategory}"></h3>      
   <table class="table table-striped" id="orderItemList">
     <thead>
       <tr>
         <th> Item </th>
         <th> Requested </th>
         <th> Given </th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
       <tr th:each = "orderItem : ${orderItems}">
         <td th:text = "${orderItem.itemKey}"></td>
-        <td th:text = "${orderItem.requested}"></td>
-        <td th:text = "${orderItem.given}"></td>
+        <td th:text = "${orderItem.requested}" class="quantityRow"></td>
+        <td th:text = "${orderItem.given}" class="quantityRow"></td>
+
+        <!--<form action="/newOrderItem" method="post">
+          <input type="hidden" th:value="${category}">
+          <input type="hidden" th:value="${orderItem.itemKey}">
+          <td><input type="number"></td>
+          <td><input type="number"></td>
+        </form>-->
+
+        <td>
+          <form action="/deleteOrderItem" method="post">
+            <input type="hidden" th:value="${orderItem.itemKey}" name="itemKey"/>
+            <input type="hidden" th:value="${selectedCategory}" name="category"/>
+            <button type="submit">&#9940;</button>
+            <button type="button" class="editQuantity">&#x1F58B;&#xFE0F;</button>
+          </form>
+        </td>
       </tr>
       <tr>
         <form action="/newOrderItem" method="post">
+          <input type="hidden" name="category" th:value="${selectedCategory}">
           <td><input type="text" placeholder="Enter name and unit" name="itemKey" required></td>
-          <td><input type="number" placeholder="Amount Requested" name="required" required></td>
+          <td><input type="number" placeholder="Amount Requested" name="requested" required></td>
           <td><input type="number" placeholder="Amount Given" name="given" required></td>
           <td><button type="submit">Add Item</button></td>
         </form>
