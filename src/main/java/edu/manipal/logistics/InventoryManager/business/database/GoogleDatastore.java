@@ -13,9 +13,6 @@ import com.google.cloud.datastore.QueryResults;
 import com.google.cloud.datastore.StructuredQuery;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
-
-import ch.qos.logback.core.status.OnErrorConsoleStatusListener;
-
 import com.google.cloud.datastore.StructuredQuery.CompositeFilter;
 
 
@@ -129,7 +126,7 @@ public class GoogleDatastore {
 			Entity entity = Entity.newBuilder(key).
 				set("itemKey" , ii.getItemKey()).
 				set("quantity", ii.getQuantity()).
-				set("requested" , ii.getRequested()).
+				//set("requested" , ii.getRequested()).
 				build();
 
 			datastore.put(entity);
@@ -227,11 +224,14 @@ public class GoogleDatastore {
 		return false;
 	}
 
+	public void saveOrderItem(OrderItem oi){
 		try{
 			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
 			String kind = oi.getClass().getSimpleName();
 			KeyFactory keyFactory = datastore.newKeyFactory().setKind(kind);
 			
+			String compositeKey = oi.getCategoryKey() + "_" + oi.getItemKey();
+			Key key = keyFactory.newKey(compositeKey);
 
         	Entity entity = Entity.newBuilder(key)
 				.set("categoryKey", oi.getCategoryKey())
@@ -245,37 +245,6 @@ public class GoogleDatastore {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	public OrderItem getOrderItem(String itemKey , String categoryKey){
-		try{
-			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
-			String kind = OrderItem.class.getSimpleName();
-
-			PropertyFilter itemKeyFilter = PropertyFilter.eq("itemKey", itemKey);
-			PropertyFilter categoryKeyFilter = PropertyFilter.eq("categoryKey", categoryKey);
-	
-			CompositeFilter filter = CompositeFilter.and(itemKeyFilter, categoryKeyFilter);
-	
-			
-			Query<Entity> query = 
-				Query.newEntityQueryBuilder()
-						.setKind(kind)
-						.setFilter(filter)
-						.build();
-			QueryResults<Entity> entities = datastore.run(query);
-
-			if(entities.hasNext()){
-				OrderItem oi = new OrderItem();
-				oi.setEntity(entities.next());
-				return oi;
-			}
-		}
-		catch(Exception e){
-
-		}
-
-		return null;
 	}
 
 	public List<OrderItem> getAllItemsInCategory(String categoryKey){
@@ -305,6 +274,34 @@ public class GoogleDatastore {
 		}
 
 		return null;
+	}
+
+	public void deleteOrderItem(String itemKey , String categoryKey){
+		try{
+			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
+			String kind = OrderItem.class.getSimpleName();
+
+			PropertyFilter itemKeyFilter = PropertyFilter.eq("itemKey", itemKey);
+			PropertyFilter categoryKeyFilter = PropertyFilter.eq("categoryKey", categoryKey);
+	
+			CompositeFilter filter = CompositeFilter.and(itemKeyFilter, categoryKeyFilter);
+	
+			
+			Query<Entity> query = 
+				Query.newEntityQueryBuilder()
+						.setKind(kind)
+						.setFilter(filter)
+						.build();
+			QueryResults<Entity> entities = datastore.run(query);	
+			
+			if(entities.hasNext()){
+				Entity e = entities.next();
+				datastore.delete(e.getKey());
+			}
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}		
 	}
 
 	public Long getNumberOfItemRequested(String itemKey){

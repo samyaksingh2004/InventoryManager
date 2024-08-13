@@ -11,6 +11,7 @@ import edu.manipal.logistics.InventoryManager.business.database.GoogleDatastore;
 import edu.manipal.logistics.InventoryManager.business.entities.Category;
 import edu.manipal.logistics.InventoryManager.business.entities.InventoryItem;
 import edu.manipal.logistics.InventoryManager.business.entities.OrderItem;
+import org.springframework.web.bind.annotation.RequestBody;
 
 
 @Controller
@@ -59,6 +60,14 @@ public class myController {
 		return "redirect:/categories?selectedCategory=" + name;
 	}
 
+	/*@PostMapping("/deleteCategory")
+	public String postMethodName(@RequestParam String name) {
+		GoogleDatastore gd = new GoogleDatastore();
+		gd.deleteCategory(name);		
+		return "redirect:/categories";
+	}*/
+	
+
 	@PostMapping("/newOrderItem")
 	public String newOrderItem(@RequestParam String category, @RequestParam String itemKey, @RequestParam Long requested, @RequestParam Long given) {
 
@@ -70,10 +79,10 @@ public class myController {
 			oi.setRequested(requested);
 
 			GoogleDatastore gd = new GoogleDatastore();
-			InventoryItem ii = gd.getInventoryItem(itemKey);
-			ii.changeRequested(requested);
+			//InventoryItem ii = gd.getInventoryItem(itemKey);
+			//ii.changeRequested(requested);
 
-			gd.saveInventoryItem(ii);
+			//gd.saveInventoryItem(ii);
 			gd.saveOrderItem(oi);
 		}
 
@@ -86,34 +95,14 @@ public class myController {
 		GoogleDatastore gd = new GoogleDatastore();
 
 		InventoryItem ii = gd.getInventoryItem(itemKey);
-		OrderItem oi = gd.getOrderItem(itemKey, category);
 
 		if (ii.getQuantity() == 0)
 			gd.deleteInventoryItem(itemKey);
-		else{
-			ii.changeRequested(-oi.getRequested());
-			gd.saveInventoryItem(ii);
-		}
 		
 		gd.deleteOrderItem(itemKey, category);
 	
 		return "redirect:/categories?selectedCategory=" + category;
 	}
-	public String selectCategory(@RequestParam String name , Model model) {
-		
-		GoogleDatastore gd = new GoogleDatastore();
-		List<OrderItem> orderItems = gd.getAllItemsInCategory(name);
-		model.addAttribute("orderItems", orderItems);
-		
-		return "redirect:/categories";
-	}
-
-	@PostMapping("/newOrderItem")
-	public String postMethodName(@RequestBody String entity) {
-		
-		return "redirect:/categories";
-	}
-	
 	
 	
 	@GetMapping("/itemList")
