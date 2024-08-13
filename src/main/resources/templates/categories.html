@@ -7,10 +7,35 @@
   <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>-->
 
-	<script>
-		/* When the user clicks on the button, 
-		toggle between hiding and showing the dropdown content */
+  <style>
+    .hidden-display {
+      display: none;
+    }
+  </style>
 
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+
+      document.querySelectorAll(".editQuantity").forEach(function(button){
+        button.addEventListener('click' , function(){
+          var row = this.closest('tr');
+          var quantityRow = row.querySelector(".quantityRow");
+          var editForm = row.querySelector(".editForm");
+          quantityRow.classList.add("hidden-display");
+          editForm.classList.remove("hidden-display");
+        });
+      });
+      document.querySelectorAll(".editFormSubmit").forEach(function(button){
+        button.addEventListener('click' , function(){
+          var row = this.closest('tr');
+          var quantityRow = row.querySelector(".quantityRow");
+          var editForm = row.querySelector(".editForm");
+          quantityRow.classList.remove("hidden-display");
+          editForm.classList.add("hidden-display");
+        });
+      });
+
+    });
 	</script>
 
 
@@ -27,30 +52,6 @@
     <button type="submit"> Enter </button>
   </form>
 </div>
-
-<!--<div class="container">
-  <h3>Categories</h3>
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Category</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr th:each="category : ${categories}">
-        <td th:text="${category.name}"></td>
-        <td>
-          <form action="/deleteCategory" method="post">
-            <input type="hidden" th:value="${category.name}" name="name"/>
-            <button type="submit" class="btn btn-danger">Delete</button>
-          </form>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
--->
 
 <div class="container" id="newCategoryButton">
   <form action="/newcategory" method="post">
@@ -75,9 +76,17 @@
     <tbody>
       <tr th:each = "orderItem : ${orderItems}">
         <td th:text = "${orderItem.itemKey}"></td>
-        <td th:text = "${orderItem.requested}" class="quantityRow"></td>
+        <td th:text = "${orderItem.requested}"></td>
         <td th:text = "${orderItem.given}" class="quantityRow"></td>
-
+        <td class="editForm hidden-display">
+          <form action="/newOrderItem" method="post">
+            <input type="hidden" th:value = "${selectedCategory}" name="category">
+            <input type="hidden" th:value="${orderItem.itemKey}" name="itemKey"/>
+            <input type="hidden" th:value="${orderItem.requested}" name="requested">
+            <input type="number" th:value="${orderItem.given}" name="given" required>
+            <button type="submit" class="editFormSubmit">&#x2705;</button>
+          </form>
+        </td>
         <!--<form action="/newOrderItem" method="post">
           <input type="hidden" th:value="${category}">
           <input type="hidden" th:value="${orderItem.itemKey}">

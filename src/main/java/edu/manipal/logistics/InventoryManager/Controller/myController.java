@@ -11,8 +11,6 @@ import edu.manipal.logistics.InventoryManager.business.database.GoogleDatastore;
 import edu.manipal.logistics.InventoryManager.business.entities.Category;
 import edu.manipal.logistics.InventoryManager.business.entities.InventoryItem;
 import edu.manipal.logistics.InventoryManager.business.entities.OrderItem;
-import org.springframework.web.bind.annotation.RequestBody;
-
 
 
 @Controller
@@ -30,12 +28,18 @@ public class myController {
 	}
 
 	@GetMapping("/categories")
-	public String catrgoriesPage(Model model){
+	public String categoriesPage(@RequestParam(value = "selectedCategory", required = false) String selectedCategory, Model model){
 
 		GoogleDatastore gd = new GoogleDatastore();
 		List<Category> categories = gd.getAllCategory();
 		model.addAttribute("categories", categories);
-
+	
+		if (selectedCategory != null && !selectedCategory.isEmpty()) {
+			List<OrderItem> orderItems = gd.getAllItemsInCategory(selectedCategory);
+			model.addAttribute("orderItems", orderItems);
+			model.addAttribute("selectedCategory", selectedCategory);
+		}
+	
 		return "categories";
 	}
 
@@ -60,20 +64,14 @@ public class myController {
 	}
 
 	@PostMapping("/selectCategory")
-	public String selectCategory(@RequestParam String name , Model model) {
-		
-		GoogleDatastore gd = new GoogleDatastore();
-		List<OrderItem> orderItems = gd.getAllItemsInCategory(name);
-		model.addAttribute("orderItems", orderItems);
-		model.addAttribute("selectedCategory", name);
-		
-		return catrgoriesPage(model);
+	public String selectCategory(@RequestParam String name) {
+		return "redirect:/categories?selectedCategory=" + name;
 	}
 
 	@PostMapping("/newOrderItem")
-	public String newOrderItem(@RequestParam String category , @RequestParam String itemKey , @RequestParam Long requested , @RequestParam Long given , Model model) {
-		
-		if(category.length() > 0 && itemKey.length() > 0){
+	public String newOrderItem(@RequestParam String category, @RequestParam String itemKey, @RequestParam Long requested, @RequestParam Long given) {
+
+		if (category.length() > 0 && itemKey.length() > 0) {
 			OrderItem oi = new OrderItem();
 			oi.setCategoryKey(category);
 			oi.setItemKey(itemKey);
@@ -81,22 +79,34 @@ public class myController {
 			oi.setRequested(requested);
 
 			GoogleDatastore gd = new GoogleDatastore();
+			InventoryItem ii = gd.getInventoryItem(itemKey);
+			ii.changeRequested(requested);
+
+			gd.saveInventoryItem(ii);
 			gd.saveOrderItem(oi);
 		}
 
-		return selectCategory(category , model);
+		return "redirect:/categories?selectedCategory=" + category;
 	}
 	
 	@PostMapping("/deleteOrderItem")
-	public String deleteOrderItem(@RequestParam String category , @RequestParam String itemKey , Model model) {
+	public String deleteOrderItem(@RequestParam String category, @RequestParam String itemKey) {
 		
 		GoogleDatastore gd = new GoogleDatastore();
+
 		InventoryItem ii = gd.getInventoryItem(itemKey);
-		if(ii.getQuantity() == 0)
+		OrderItem oi = gd.getOrderItem(itemKey, category);
+
+		if (ii.getQuantity() == 0)
 			gd.deleteInventoryItem(itemKey);
-		gd.deleteOrderItem(itemKey, category);
+		else{
+			ii.changeRequested(-oi.getRequested());
+			gd.saveInventoryItem(ii);
+		}
 		
-		return selectCategory(category, model);
+		gd.deleteOrderItem(itemKey, category);
+	
+		return "redirect:/categories?selectedCategory=" + category;
 	}
 	
 	
@@ -122,6 +132,7 @@ public class myController {
 			InventoryItem ii = new InventoryItem();
 			ii.setItemKey(itemKey);
 			ii.setQuantity(quantity);
+
 			GoogleDatastore gd = new GoogleDatastore();
 			gd.saveInventoryItem(ii);
 		}
