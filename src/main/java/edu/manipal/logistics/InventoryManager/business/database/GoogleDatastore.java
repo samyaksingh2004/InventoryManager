@@ -126,7 +126,7 @@ public class GoogleDatastore {
 			Entity entity = Entity.newBuilder(key).
 				set("itemKey" , ii.getItemKey()).
 				set("quantity", ii.getQuantity()).
-				//set("requested" , ii.getRequested()).
+				set("requested" , ii.getRequested()).
 				build();
 
 			datastore.put(entity);
@@ -247,6 +247,37 @@ public class GoogleDatastore {
 		}
 	}
 
+	public OrderItem getOrderItem(String itemKey , String categoryKey){
+		try{
+			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
+			String kind = OrderItem.class.getSimpleName();
+
+			PropertyFilter itemKeyFilter = PropertyFilter.eq("itemKey", itemKey);
+			PropertyFilter categoryKeyFilter = PropertyFilter.eq("categoryKey", categoryKey);
+	
+			CompositeFilter filter = CompositeFilter.and(itemKeyFilter, categoryKeyFilter);
+	
+			
+			Query<Entity> query = 
+				Query.newEntityQueryBuilder()
+						.setKind(kind)
+						.setFilter(filter)
+						.build();
+			QueryResults<Entity> entities = datastore.run(query);
+
+			if(entities.hasNext()){
+				OrderItem oi = new OrderItem();
+				oi.setEntity(entities.next());
+				return oi;
+			}
+		}
+		catch(Exception e){
+
+		}
+
+		return null;
+	}
+
 	public List<OrderItem> getAllItemsInCategory(String categoryKey){
 		try{
 			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
@@ -302,6 +333,19 @@ public class GoogleDatastore {
 		catch(Exception e){
 			e.printStackTrace();
 		}		
+	}
+
+	public boolean existsOrderItem(String itemKey , String categoryKey){
+		try{
+			OrderItem oi = getOrderItem(itemKey , categoryKey);
+			if(oi == null)
+				return false;
+			return true;
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 	public Long getNumberOfItemRequested(String itemKey){

@@ -32,13 +32,6 @@ public class OrderItem {
     }
 
     public void setRequested(Long requested){
-        if(itemKey == "")
-            return;
-
-        GoogleDatastore gd = new GoogleDatastore();
-        //InventoryItem ii = gd.getInventoryItem(itemKey);
-        //ii.changeRequested(requested);
-        //gd.saveInventoryItem(ii);
         this.requested = requested;
     }
 

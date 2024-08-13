@@ -10,3 +10,23 @@
 <body>
 <div th:insert="~{navbar :: navbar}"></div>
 
+<div class="container">
+  <table class="table table-striped" id="inventoryItemList">
+    <thead>
+      <tr>
+        <th> Item </th>
+        <th> Quantity </th>
+        <th> Requested </th>
+        <th> To Order </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="item : ${items}">
+        <td th:text="${item.itemKey}"></td>
+        <td th:text="${item.quantity}"></td>
+        <td th:text="${item.requested}"></td>
+        <td th:text="${item.requested - item.quantity}"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>

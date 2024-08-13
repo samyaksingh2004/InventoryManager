@@ -79,10 +79,13 @@ public class myController {
 			oi.setRequested(requested);
 
 			GoogleDatastore gd = new GoogleDatastore();
-			//InventoryItem ii = gd.getInventoryItem(itemKey);
-			//ii.changeRequested(requested);
 
-			//gd.saveInventoryItem(ii);
+			if(!gd.existsOrderItem(itemKey , category)){
+				InventoryItem ii = gd.getInventoryItem(itemKey);
+				ii.changeRequested(requested);
+				gd.saveInventoryItem(ii);
+			}
+			
 			gd.saveOrderItem(oi);
 		}
 
@@ -95,10 +98,14 @@ public class myController {
 		GoogleDatastore gd = new GoogleDatastore();
 
 		InventoryItem ii = gd.getInventoryItem(itemKey);
+		OrderItem oi = gd.getOrderItem(itemKey , category);
+		ii.changeRequested(-oi.getRequested());
 
-		if (ii.getQuantity() == 0)
+		if(ii.getQuantity() == 0 && ii.getRequested() == 0)
 			gd.deleteInventoryItem(itemKey);
-		
+		else
+			gd.saveInventoryItem(ii);
+				
 		gd.deleteOrderItem(itemKey, category);
 	
 		return "redirect:/categories?selectedCategory=" + category;
@@ -106,7 +113,12 @@ public class myController {
 	
 	
 	@GetMapping("/itemList")
-	public String itemListPage() {
+	public String itemListPage(Model model) {
+
+		GoogleDatastore gd = new GoogleDatastore();
+		List<InventoryItem> items = gd.getAllInventoryItems();
+		model.addAttribute("items", items);
+
 		return "itemList";
 	}
 	
@@ -121,12 +133,13 @@ public class myController {
 	}
 
 	@PostMapping("/newItem")
-	public String newItem(@RequestParam String itemKey , @RequestParam Long quantity) {
+	public String newItem(@RequestParam String itemKey , @RequestParam Long quantity , @RequestParam Long requested) {
 
 		if(itemKey.length() > 0 && quantity > 0){
 			InventoryItem ii = new InventoryItem();
 			ii.setItemKey(itemKey);
 			ii.setQuantity(quantity);
+			ii.setRequested(requested);
 
 			GoogleDatastore gd = new GoogleDatastore();
 			gd.saveInventoryItem(ii);
@@ -139,7 +152,9 @@ public class myController {
 	public String deleteItem(@RequestParam String deleteKey) {
 		
 		GoogleDatastore gd = new GoogleDatastore();
-		gd.deleteInventoryItem(deleteKey);
+		InventoryItem ii = gd.getInventoryItem(deleteKey);
+		if(ii.getRequested() == 0)
+			gd.deleteInventoryItem(deleteKey);
 
 		return "redirect:/inventoryList";
 	}
