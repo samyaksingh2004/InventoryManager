@@ -43,15 +43,6 @@ public class myController {
 		return "categories";
 	}
 
-	/*@PostMapping("/deleteCategory")
-	public String deleteCategory(@RequestParam String name) {
-		GoogleDatastore gd = new GoogleDatastore();
-		gd.deleteCategory(name);
-		
-		return "redirect:/categories";
-	}*/
-	
-
 	@PostMapping("/newcategory")
 	public String newCategory(@RequestParam String name) {
 
@@ -108,6 +99,21 @@ public class myController {
 	
 		return "redirect:/categories?selectedCategory=" + category;
 	}
+	public String selectCategory(@RequestParam String name , Model model) {
+		
+		GoogleDatastore gd = new GoogleDatastore();
+		List<OrderItem> orderItems = gd.getAllItemsInCategory(name);
+		model.addAttribute("orderItems", orderItems);
+		
+		return "redirect:/categories";
+	}
+
+	@PostMapping("/newOrderItem")
+	public String postMethodName(@RequestBody String entity) {
+		
+		return "redirect:/categories";
+	}
+	
 	
 	
 	@GetMapping("/itemList")

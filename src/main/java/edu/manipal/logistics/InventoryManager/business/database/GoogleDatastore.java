@@ -227,14 +227,11 @@ public class GoogleDatastore {
 		return false;
 	}
 
-	public void saveOrderItem(OrderItem oi){
 		try{
 			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
 			String kind = oi.getClass().getSimpleName();
 			KeyFactory keyFactory = datastore.newKeyFactory().setKind(kind);
 			
-			String compositeKey = oi.getCategoryKey() + "_" + oi.getItemKey();
-			Key key = keyFactory.newKey(compositeKey);
 
         	Entity entity = Entity.newBuilder(key)
 				.set("categoryKey", oi.getCategoryKey())
@@ -308,34 +305,6 @@ public class GoogleDatastore {
 		}
 
 		return null;
-	}
-
-	public void deleteOrderItem(String itemKey , String categoryKey){
-		try{
-			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
-			String kind = OrderItem.class.getSimpleName();
-
-			PropertyFilter itemKeyFilter = PropertyFilter.eq("itemKey", itemKey);
-			PropertyFilter categoryKeyFilter = PropertyFilter.eq("categoryKey", categoryKey);
-	
-			CompositeFilter filter = CompositeFilter.and(itemKeyFilter, categoryKeyFilter);
-	
-			
-			Query<Entity> query = 
-				Query.newEntityQueryBuilder()
-						.setKind(kind)
-						.setFilter(filter)
-						.build();
-			QueryResults<Entity> entities = datastore.run(query);	
-			
-			if(entities.hasNext()){
-				Entity e = entities.next();
-				datastore.delete(e.getKey());
-			}
-		}
-		catch(Exception e){
-			e.printStackTrace();
-		}		
 	}
 
 	public Long getNumberOfItemRequested(String itemKey){
