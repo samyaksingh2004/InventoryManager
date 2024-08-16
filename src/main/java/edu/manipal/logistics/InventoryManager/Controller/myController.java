@@ -11,8 +11,8 @@ import edu.manipal.logistics.InventoryManager.business.database.GoogleDatastore;
 import edu.manipal.logistics.InventoryManager.business.entities.Category;
 import edu.manipal.logistics.InventoryManager.business.entities.InventoryItem;
 import edu.manipal.logistics.InventoryManager.business.entities.OrderItem;
-import org.springframework.web.bind.annotation.RequestBody;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class myController {
@@ -23,8 +23,11 @@ public class myController {
 	}
 
 	@PostMapping("/login")
-	public String validLogin(@RequestParam String uname , @RequestParam String pwd) {
+	public String validLogin(HttpServletRequest req , @RequestParam String uname , @RequestParam String pwd) {
 		// check login
+		HttpSession s = req.getSession();
+		s.setAttribute(uname, pwd);
+		
 		return "redirect:/categories";
 	}
 

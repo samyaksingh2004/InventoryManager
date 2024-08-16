@@ -72,17 +72,17 @@
 <body>
 <div th:insert="~{navbar :: navbar}"></div>
 
-<div class="container">
-  <input type="text" id="myInput" placeholder="Search for names.." class="form-control">
+<div class="container" style="margin-top: 20px;">
+  <input type="text" id="myInput" placeholder="Search for names..." class="form-control">
 </div>
 
-<div class="container">
+<div class="container" style="margin-top: 20px;">
   <table class="table table-striped" id="inventoryItemList">
     <thead>
       <tr>
         <th>Item</th>
         <th>Quantity</th>
-        <th></th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -90,27 +90,27 @@
         <td th:text="${item.itemKey}"></td>
         <td class="quantityRow" th:text="${item.quantity}"></td>
         <td class="editForm hidden-display">
-          <form action="/newItem" method="post">
+          <form action="/newItem" method="post" class="form-inline">
             <input type="hidden" th:value="${item.itemKey}" name="itemKey"/>
             <input type="hidden" th:value="${item.requested}" name="requested">
-            <input type="number" th:value="${item.quantity}" name="quantity" required>
-            <button type="submit" class="editFormSubmit">&#x2705;</button>
+            <input type="number" th:value="${item.quantity}" name="quantity" class="form-control" required>
+            <button type="submit" class="btn btn-success editFormSubmit">&#x2705;</button>
           </form>
         </td>
         <td>
-          <form action="/deleteItem" method="post">
+          <form action="/deleteItem" method="post" class="form-inline">
             <input type="hidden" th:value="${item.itemKey}" name="deleteKey"/>
-            <button type="submit">&#9940;</button>
-            <button type="button" class="editQuantity">&#x1F58B;&#xFE0F;</button>
+            <button type="submit" class="btn btn-danger">&#9940;</button>
+            <button type="button" class="btn btn-warning editQuantity">&#x1F58B;&#xFE0F;</button>
           </form>
         </td>
       </tr>
       <tr>
-        <form action="/newItem" method="post">
-          <td><input type="text" placeholder="Enter name and unit" name="itemKey" required></td>
-          <td><input type="number" placeholder="Enter quantity" name="quantity" required></td>
+        <form action="/newItem" method="post" class="form-inline">
+          <td><input type="text" class="form-control" placeholder="Enter name and unit" name="itemKey" required></td>
+          <td><input type="number" class="form-control" placeholder="Enter quantity" name="quantity" required></td>
           <input type="hidden" value="0" name="requested" />
-          <td><button type="submit">Add Item</button></td>
+          <td><button type="submit" class="btn btn-primary">Add Item</button></td>
         </form>
       </tr>
     </tbody>

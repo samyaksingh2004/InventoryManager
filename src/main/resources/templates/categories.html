@@ -37,11 +37,31 @@
 
     });
 	</script>
-
-
 </head>
 <body>
 <div th:insert="~{navbar :: navbar}"></div>
+
+<div class="container">
+  <h3>Select a Category</h3>
+  <form action="/selectCategory" method="post" class="form-inline">
+    <div class="form-group">
+      <select class="form-control" name="name">
+        <option th:each="category : ${categories}" th:value="${category.name}" th:text="${category.name}"></option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Enter</button>
+  </form>
+</div>
+
+<div class="container" id="newCategoryButton" style="margin-top: 20px;">
+  <form action="/newcategory" method="post" class="form-inline">
+    <div class="form-group">
+      <label for="newCategory">Enter New Category:</label>
+      <input type="text" id="newCategory" class="form-control" placeholder="New Category" name="name" required>
+    </div>
+    <button type="submit" class="btn btn-success">Submit</button>
+  </form>
+</div>
 
 <!--<div class="container">
   <h3>Categories</h3>
@@ -67,67 +87,47 @@
 </div>
 -->
 
-<div class="container">
-  <p> Select a Category </p>
-  <form action="/selectCategory" method="post">
-    <select class="form-select" name="name">
-      <option th:each="category : ${categories}" th:value="${category.name}" th:text="${category.name}"></option>
-    </select>
-    <button type="submit"> Enter </button>
-  </form>
-</div>
-
-<div class="container" id="newCategoryButton">
-  <form action="/newcategory" method="post">
-    <label>Enter New Category : </label>
-    <input type="name" placeholder="New Category" name="name">
-    <button type="submit"> Submit </button>
-  </form>
-</div>
-
-<div class="container">
-
-  <h3 th:text = "${selectedCategory}"></h3>      
+<div class="container" style="margin-top: 20px;">
+  <h3 th:text="${selectedCategory}" style="text-align: center;"></h3>
   <table class="table table-striped" id="orderItemList">
     <thead>
       <tr>
-        <th> Item </th>
-        <th> Requested </th>
-        <th> Given </th>
-        <th></th>
+        <th>Item</th>
+        <th>Requested</th>
+        <th>Given</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      <tr th:each = "orderItem : ${orderItems}">
-        <td th:text = "${orderItem.itemKey}"></td>
-        <td th:text = "${orderItem.requested}"></td>
-        <td th:text = "${orderItem.given}" class="quantityRow"></td>
+      <tr th:each="orderItem : ${orderItems}">
+        <td th:text="${orderItem.itemKey}"></td>
+        <td th:text="${orderItem.requested}"></td>
+        <td th:text="${orderItem.given}" class="quantityRow"></td>
         <td class="editForm hidden-display">
-          <form action="/newOrderItem" method="post">
-            <input type="hidden" th:value = "${selectedCategory}" name="category">
+          <form action="/newOrderItem" method="post" class="form-inline">
+            <input type="hidden" th:value="${selectedCategory}" name="category">
             <input type="hidden" th:value="${orderItem.itemKey}" name="itemKey"/>
             <input type="hidden" th:value="${orderItem.requested}" name="requested">
-            <input type="number" th:value="${orderItem.given}" name="given" required>
-            <button type="submit" class="editFormSubmit">&#x2705;</button>
+            <input type="number" th:value="${orderItem.given}" name="given" class="form-control" required>
+            <button type="submit" class="btn btn-success editFormSubmit">&#x2705;</button>
           </form>
         </td>
-
         <td>
-          <form action="/deleteOrderItem" method="post">
+          <form action="/deleteOrderItem" method="post" class="form-inline">
             <input type="hidden" th:value="${orderItem.itemKey}" name="itemKey"/>
             <input type="hidden" th:value="${selectedCategory}" name="category"/>
-            <button type="submit">&#9940;</button>
-            <button type="button" class="editQuantity">&#x1F58B;&#xFE0F;</button>
+            <button type="submit" class="btn btn-danger">&#9940;</button>
+            <button type="button" class="btn btn-warning editQuantity">&#x1F58B;&#xFE0F;</button>
           </form>
         </td>
       </tr>
       <tr>
-        <form action="/newOrderItem" method="post">
+        <form action="/newOrderItem" method="post" class="form-inline">
           <input type="hidden" name="category" th:value="${selectedCategory}">
-          <td><input type="text" placeholder="Enter name and unit" name="itemKey" required></td>
-          <td><input type="number" placeholder="Amount Requested" name="requested" required></td>
-          <td><input type="number" placeholder="Amount Given" name="given" required></td>
-          <td><button type="submit">Add Item</button></td>
+          <td><input type="text" class="form-control" placeholder="Enter name and unit" name="itemKey" required></td>
+          <td><input type="number" class="form-control" placeholder="Amount Requested" name="requested" required></td>
+          <td><input type="number" class="form-control" placeholder="Amount Given" name="given" required></td>
+          <td><button type="submit" class="btn btn-primary">Add Item</button></td>
         </form>
       </tr>
     </tbody>

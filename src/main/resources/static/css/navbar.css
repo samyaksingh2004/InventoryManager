@@ -1,4 +1,3 @@
-
 body {font-family: Arial;}
 
 /* Style the tab */
@@ -6,12 +5,12 @@ body {font-family: Arial;}
   overflow: hidden;
   border: 1px solid #ccc;
   background-color: #f1f1f1;
+  display: flex;
 }
 
 /* Style the buttons inside the tab */
 .tab button {
   background-color: inherit;
-  float: left;
   border: none;
   outline: none;
   cursor: pointer;
@@ -36,4 +35,15 @@ body {font-family: Arial;}
   padding: 6px 12px;
   border: 1px solid #ccc;
   border-top: none;
+}
+
+/* Specific styling for the logout button */
+.tab .logout-btn {
+  background-color: #eb5b51; /* Red color for logout */
+  color: white;
+}
+
+/* Darker red on hover for logout */
+.tab .logout-btn:hover {
+  background-color: #97342d;
 }
