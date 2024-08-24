@@ -18,7 +18,7 @@ import com.google.cloud.datastore.StructuredQuery.CompositeFilter;
 
 import edu.manipal.logistics.InventoryManager.business.entities.Category;
 import edu.manipal.logistics.InventoryManager.business.entities.InventoryItem;
-import edu.manipal.logistics.InventoryManager.business.entities.OrderItem;
+import edu.manipal.logistics.InventoryManager.business.entities.CategoryItem;
 
 public class GoogleDatastore {
     public void saveCategory(Category c){
@@ -127,6 +127,10 @@ public class GoogleDatastore {
 				set("itemKey" , ii.getItemKey()).
 				set("quantity", ii.getQuantity()).
 				set("requested" , ii.getRequested()).
+				set("given" , ii.getGiven()).
+				set("order" , ii.getOrder()).
+				set("received" , ii.getReceived()).
+				set("vendor" , ii.getVendor()).
 				build();
 
 			datastore.put(entity);
@@ -224,7 +228,7 @@ public class GoogleDatastore {
 		return false;
 	}
 
-	public void saveOrderItem(OrderItem oi){
+	public void saveCategoryItem(CategoryItem oi){
 		try{
 			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
 			String kind = oi.getClass().getSimpleName();
@@ -247,10 +251,10 @@ public class GoogleDatastore {
 		}
 	}
 
-	public OrderItem getOrderItem(String itemKey , String categoryKey){
+	public CategoryItem getCategoryItem(String itemKey , String categoryKey){
 		try{
 			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
-			String kind = OrderItem.class.getSimpleName();
+			String kind = CategoryItem.class.getSimpleName();
 
 			PropertyFilter itemKeyFilter = PropertyFilter.eq("itemKey", itemKey);
 			PropertyFilter categoryKeyFilter = PropertyFilter.eq("categoryKey", categoryKey);
@@ -266,7 +270,7 @@ public class GoogleDatastore {
 			QueryResults<Entity> entities = datastore.run(query);
 
 			if(entities.hasNext()){
-				OrderItem oi = new OrderItem();
+				CategoryItem oi = new CategoryItem();
 				oi.setEntity(entities.next());
 				return oi;
 			}
@@ -278,10 +282,10 @@ public class GoogleDatastore {
 		return null;
 	}
 
-	public List<OrderItem> getAllItemsInCategory(String categoryKey){
+	public List<CategoryItem> getAllItemsInCategory(String categoryKey){
 		try{
 			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
-			String kind = OrderItem.class.getSimpleName();
+			String kind = CategoryItem.class.getSimpleName();
 
 			PropertyFilter filter = StructuredQuery.PropertyFilter.eq("categoryKey", categoryKey);
 			Query<Entity> query = 
@@ -291,9 +295,9 @@ public class GoogleDatastore {
 						.build();
 			QueryResults<Entity> entities = datastore.run(query);
 
-			List<OrderItem> output = new ArrayList<OrderItem>();
+			List<CategoryItem> output = new ArrayList<CategoryItem>();
 			while(entities.hasNext()){
-				OrderItem oi = new OrderItem();
+				CategoryItem oi = new CategoryItem();
 				oi.setEntity(entities.next());
 				output.add(oi);
 			}
@@ -307,10 +311,10 @@ public class GoogleDatastore {
 		return null;
 	}
 
-	public void deleteOrderItem(String itemKey , String categoryKey){
+	public void deleteCategoryItem(String itemKey , String categoryKey){
 		try{
 			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
-			String kind = OrderItem.class.getSimpleName();
+			String kind = CategoryItem.class.getSimpleName();
 
 			PropertyFilter itemKeyFilter = PropertyFilter.eq("itemKey", itemKey);
 			PropertyFilter categoryKeyFilter = PropertyFilter.eq("categoryKey", categoryKey);
@@ -335,9 +339,9 @@ public class GoogleDatastore {
 		}		
 	}
 
-	public boolean existsOrderItem(String itemKey , String categoryKey){
+	public boolean existsCategoryItem(String itemKey , String categoryKey){
 		try{
-			OrderItem oi = getOrderItem(itemKey , categoryKey);
+			CategoryItem oi = getCategoryItem(itemKey , categoryKey);
 			if(oi == null)
 				return false;
 			return true;
@@ -352,7 +356,7 @@ public class GoogleDatastore {
 		// try to write a query to get the sum
 		try{
 			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
-			String kind = OrderItem.class.getSimpleName();
+			String kind = CategoryItem.class.getSimpleName();
 
 			PropertyFilter filter = StructuredQuery.PropertyFilter.eq("itemKey", itemKey);
 			Query<Entity> query = 
@@ -364,7 +368,7 @@ public class GoogleDatastore {
 
 			Long count = 0L;
 			while(entities.hasNext()){
-				OrderItem oi = new OrderItem();
+				CategoryItem oi = new CategoryItem();
 				oi.setEntity(entities.next());
 				count += oi.getRequested();
 			}
@@ -378,5 +382,4 @@ public class GoogleDatastore {
 		return 0L;
 	}
 
-	
 }

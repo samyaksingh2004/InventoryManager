@@ -10,9 +10,10 @@ import org.springframework.ui.Model;
 import edu.manipal.logistics.InventoryManager.business.database.GoogleDatastore;
 import edu.manipal.logistics.InventoryManager.business.entities.Category;
 import edu.manipal.logistics.InventoryManager.business.entities.InventoryItem;
-import edu.manipal.logistics.InventoryManager.business.entities.OrderItem;
+import edu.manipal.logistics.InventoryManager.business.entities.CategoryItem;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+
 
 @Controller
 public class myController {
@@ -39,9 +40,12 @@ public class myController {
 		model.addAttribute("categories", categories);
 	
 		if (selectedCategory != null && !selectedCategory.isEmpty()) {
-			List<OrderItem> orderItems = gd.getAllItemsInCategory(selectedCategory);
-			model.addAttribute("orderItems", orderItems);
+			List<CategoryItem> categoryItems = gd.getAllItemsInCategory(selectedCategory);
+			model.addAttribute("categoryItems", categoryItems);
 			model.addAttribute("selectedCategory", selectedCategory);
+
+			List<InventoryItem> items = gd.getAllInventoryItems();
+			model.addAttribute("items", items);
 		}
 	
 		return "categories";
@@ -71,45 +75,57 @@ public class myController {
 	}*/
 	
 
-	@PostMapping("/newOrderItem")
-	public String newOrderItem(@RequestParam String category, @RequestParam String itemKey, @RequestParam Long requested, @RequestParam Long given) {
+	@PostMapping("/newCategoryItem")
+	public String newCategoryItem(@RequestParam String category, @RequestParam String itemKey, @RequestParam Long requested, @RequestParam Long given) {
 
 		if (category.length() > 0 && itemKey.length() > 0) {
-			OrderItem oi = new OrderItem();
-			oi.setCategoryKey(category);
-			oi.setItemKey(itemKey);
-			oi.setGiven(given);
-			oi.setRequested(requested);
+			CategoryItem ci = new CategoryItem();
+			ci.setCategoryKey(category);
+			ci.setItemKey(itemKey);
+			ci.setGiven(given);
+			ci.setRequested(requested);
 
 			GoogleDatastore gd = new GoogleDatastore();
 
-			if(!gd.existsOrderItem(itemKey , category)){
+			if(!gd.existsCategoryItem(itemKey , category)){
+				// get the category item and make the changes there
 				InventoryItem ii = gd.getInventoryItem(itemKey);
 				ii.changeRequested(requested);
+				ii.changeGiven(given);
+				ii.setOrder(ii.getRequested() - ii.getQuantity() - ii.getGiven() + ii.getReceived());
+				gd.saveInventoryItem(ii);
+			}
+			else{
+				CategoryItem oldci = gd.getCategoryItem(itemKey, category);
+				InventoryItem ii = gd.getInventoryItem(itemKey);
+				ii.changeGiven(given - oldci.getGiven());
+				ii.setOrder(ii.getRequested() - ii.getQuantity() - ii.getGiven() + ii.getReceived());
 				gd.saveInventoryItem(ii);
 			}
 			
-			gd.saveOrderItem(oi);
+			gd.saveCategoryItem(ci);
 		}
 
 		return "redirect:/categories?selectedCategory=" + category;
 	}
 	
-	@PostMapping("/deleteOrderItem")
-	public String deleteOrderItem(@RequestParam String category, @RequestParam String itemKey) {
+	@PostMapping("/deleteCategoryItem")
+	public String deleteCategoryItem(@RequestParam String category, @RequestParam String itemKey) {
 		
 		GoogleDatastore gd = new GoogleDatastore();
 
 		InventoryItem ii = gd.getInventoryItem(itemKey);
-		OrderItem oi = gd.getOrderItem(itemKey , category);
-		ii.changeRequested(-oi.getRequested());
+		CategoryItem ci = gd.getCategoryItem(itemKey , category);
+		ii.changeRequested(-ci.getRequested());
+		ii.changeGiven(-ci.getGiven());
+		ii.setOrder(ii.getRequested() - ii.getQuantity() - ii.getGiven() + ii.getReceived());
 
-		if(ii.getQuantity() == 0 && ii.getRequested() == 0)
+		if(ii.getQuantity() == 0 && ii.getRequested() == 0 && ii.getGiven() == 0)
 			gd.deleteInventoryItem(itemKey);
 		else
 			gd.saveInventoryItem(ii);
 				
-		gd.deleteOrderItem(itemKey, category);
+		gd.deleteCategoryItem(itemKey, category);
 	
 		return "redirect:/categories?selectedCategory=" + category;
 	}
@@ -124,6 +140,19 @@ public class myController {
 
 		return "itemList";
 	}
+
+	@PostMapping("/changeItem")
+	public String changeRecieved(@RequestParam String itemKey , @RequestParam Long received , @RequestParam String vendor) {
+		
+		GoogleDatastore gd = new GoogleDatastore();
+		InventoryItem ii = gd.getInventoryItem(itemKey);
+		ii.changeReceived(received);
+		ii.setVendor(vendor);
+		gd.saveInventoryItem(ii);
+		
+		return "redirect:/itemList";
+	}
+	
 	
 	@GetMapping("/inventoryList")
 	public String inventoryListPage(Model model) {

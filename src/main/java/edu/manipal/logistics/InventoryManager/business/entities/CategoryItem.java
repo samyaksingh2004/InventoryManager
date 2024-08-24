@@ -4,13 +4,13 @@ import com.google.cloud.datastore.Entity;
 
 import edu.manipal.logistics.InventoryManager.business.database.GoogleDatastore;
 
-public class OrderItem {
+public class CategoryItem {
     private String categoryKey;
     private String itemKey;
     private Long requested;
     private Long given;
 
-    public OrderItem(){
+    public CategoryItem(){
         requested = 0L;
         given = 0L;
     }

@@ -6,30 +6,88 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
   <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>-->
+
+  <style>
+    .hidden-display {
+      display: none;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      document.querySelectorAll(".editQuantity").forEach(function(button){
+        button.addEventListener('click', function(){
+          var row = this.closest('tr');
+          var vendorRow = row.querySelector(".vendorRow");
+          var receivedRow = row.querySelector(".receivedRow");
+          var vendorForm = row.querySelector(".vendorForm");
+          var receivedForm = row.querySelector(".receivedForm");
+          vendorRow.classList.add("hidden-display");
+          receivedRow.classList.add("hidden-display");
+          vendorForm.classList.remove("hidden-display");
+          receivedForm.classList.remove("hidden-display");
+        });
+      });
+
+      document.querySelectorAll(".editFormSubmit").forEach(function(button){
+        button.addEventListener('click', function(){
+          var row = this.closest('tr');
+          var vendorRow = row.querySelector(".vendorRow");
+          var receivedRow = row.querySelector(".receivedRow");
+          var vendorForm = row.querySelector(".vendorForm");
+          var receivedForm = row.querySelector(".receivedForm");
+          vendorRow.classList.remove("hidden-display");
+          receivedRow.classList.remove("hidden-display");
+          vendorForm.classList.add("hidden-display");
+          receivedForm.classList.add("hidden-display");
+        });
+      });
+
+    });
+  </script>
 </head>
 <body>
-<div th:insert="~{navbar :: navbar}"></div>
+  <div th:insert="~{navbar :: navbar}"></div>
 
-<div class="container" style="margin-top: 20px;">
-  <table class="table table-striped" id="inventoryItemList">
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th>Quantity</th>
-        <th>Requested</th>
-        <th>To Order</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr th:each="item : ${items}">
-        <td th:text="${item.itemKey}"></td>
-        <td th:text="${item.quantity}"></td>
-        <td th:text="${item.requested}"></td>
-        <td th:text="${item.requested - item.quantity}"></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+  <div class="container" style="margin-top: 20px;">
+    <table class="table table-striped" id="inventoryItemList">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>To Order</th>
+          <th>Received</th>
+          <th>Vendor</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="item : ${items}">
+          <td th:text="${item.itemKey}"></td>
+          <td th:text="${item.order}" class="quantityRow"></td>
+          <td class="receivedRow" th:text="${item.received}"></td>
+          <td class="vendorRow" th:text="${item.vendor}"></td>
+          <!-- Editable form fields in the respective columns -->
+          <td class="receivedForm hidden-display">
+            <form action="/changeItem" method="post" class="form-inline">
+              <input type="hidden" th:value="${item.itemKey}" name="itemKey"/>
+              <input type="hidden" th:value="${item.order}" name="order">
+              <input type="number" th:value="${item.received}" name="received" class="form-control" required>
+            </form>
+          </td>
+          <td class="vendorForm hidden-display">
+            <form action="/changeItem" method="post" class="form-inline">
+              <input type="text" th:value="${item.vendor}" name="vendor" class="form-control" required>
+              <button type="submit" class="btn btn-success editFormSubmit">&#x2705;</button>
+            </form>
+          </td>
+          <td>
+            <button type="button" class="btn btn-warning editQuantity">&#x1F58B;&#xFE0F;</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
 </body>
 </html>
