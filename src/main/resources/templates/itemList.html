@@ -67,7 +67,6 @@
           <td th:text="${item.order}" class="quantityRow"></td>
           <td class="receivedRow" th:text="${item.received}"></td>
           <td class="vendorRow" th:text="${item.vendor}"></td>
-          <!-- Editable form fields in the respective columns -->
           <td class="receivedForm hidden-display">
             <form action="/changeItem" method="post" class="form-inline">
               <input type="hidden" th:value="${item.itemKey}" name="itemKey"/>

@@ -18,6 +18,7 @@ import com.google.cloud.datastore.StructuredQuery.CompositeFilter;
 
 import edu.manipal.logistics.InventoryManager.business.entities.Category;
 import edu.manipal.logistics.InventoryManager.business.entities.InventoryItem;
+import edu.manipal.logistics.InventoryManager.business.entities.UserInfo;
 import edu.manipal.logistics.InventoryManager.business.entities.CategoryItem;
 
 public class GoogleDatastore {
@@ -228,20 +229,20 @@ public class GoogleDatastore {
 		return false;
 	}
 
-	public void saveCategoryItem(CategoryItem oi){
+	public void saveCategoryItem(CategoryItem ci){
 		try{
 			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
-			String kind = oi.getClass().getSimpleName();
+			String kind = ci.getClass().getSimpleName();
 			KeyFactory keyFactory = datastore.newKeyFactory().setKind(kind);
 			
-			String compositeKey = oi.getCategoryKey() + "_" + oi.getItemKey();
+			String compositeKey = ci.getCategoryKey() + "_" + ci.getItemKey();
 			Key key = keyFactory.newKey(compositeKey);
 
         	Entity entity = Entity.newBuilder(key)
-				.set("categoryKey", oi.getCategoryKey())
-				.set("itemKey" , oi.getItemKey())
-				.set("requested" , oi.getRequested())
-				.set("given" , oi.getGiven())
+				.set("categoryKey", ci.getCategoryKey())
+				.set("itemKey" , ci.getItemKey())
+				.set("requested" , ci.getRequested())
+				.set("given" , ci.getGiven())
 				.build();
 
         	datastore.put(entity);
@@ -270,9 +271,9 @@ public class GoogleDatastore {
 			QueryResults<Entity> entities = datastore.run(query);
 
 			if(entities.hasNext()){
-				CategoryItem oi = new CategoryItem();
-				oi.setEntity(entities.next());
-				return oi;
+				CategoryItem ci = new CategoryItem();
+				ci.setEntity(entities.next());
+				return ci;
 			}
 		}
 		catch(Exception e){
@@ -297,9 +298,9 @@ public class GoogleDatastore {
 
 			List<CategoryItem> output = new ArrayList<CategoryItem>();
 			while(entities.hasNext()){
-				CategoryItem oi = new CategoryItem();
-				oi.setEntity(entities.next());
-				output.add(oi);
+				CategoryItem ci = new CategoryItem();
+				ci.setEntity(entities.next());
+				output.add(ci);
 			}
 
 			return output;
@@ -341,8 +342,8 @@ public class GoogleDatastore {
 
 	public boolean existsCategoryItem(String itemKey , String categoryKey){
 		try{
-			CategoryItem oi = getCategoryItem(itemKey , categoryKey);
-			if(oi == null)
+			CategoryItem ci = getCategoryItem(itemKey , categoryKey);
+			if(ci == null)
 				return false;
 			return true;
 		}
@@ -368,9 +369,9 @@ public class GoogleDatastore {
 
 			Long count = 0L;
 			while(entities.hasNext()){
-				CategoryItem oi = new CategoryItem();
-				oi.setEntity(entities.next());
-				count += oi.getRequested();
+				CategoryItem ci = new CategoryItem();
+				ci.setEntity(entities.next());
+				count += ci.getRequested();
 			}
 
 			return count;
@@ -380,6 +381,65 @@ public class GoogleDatastore {
 		}
 
 		return 0L;
+	}
+
+	public void saveUserInfo(UserInfo ui){
+		try{
+			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
+			String kind = ui.getClass().getSimpleName();
+			KeyFactory keyFactory = datastore.newKeyFactory().setKind(kind);
+
+			Key key = keyFactory.newKey(ui.getName());
+
+			Entity entity = Entity.newBuilder(key).
+				set("name" , ui.getName()).
+				set("password" , ui.getPassword()).
+				build();
+
+			datastore.put(entity);
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+
+	public UserInfo getUserInfo(String name){
+		try{
+			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
+			String kind = UserInfo.class.getSimpleName();
+
+			PropertyFilter filter = StructuredQuery.PropertyFilter.eq("name", name);
+			Query<Entity> query =
+                Query.newEntityQueryBuilder()
+                        .setKind(kind)
+						.setFilter(filter)
+                        .build();
+        	QueryResults<Entity> entities = datastore.run(query);
+			
+			if(entities.hasNext()) {
+				UserInfo ui = new UserInfo();
+				ui.setEntity(entities.next());
+				return ui;	
+			}
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+        return null;
+	}
+
+	public boolean existsUser(String name){
+		try{
+			UserInfo ui = getUserInfo(name);
+
+			if(ui == null)
+				return false;
+			return true;
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 }
