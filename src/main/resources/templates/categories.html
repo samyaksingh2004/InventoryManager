@@ -113,6 +113,20 @@
       </tr>
     </thead>
     <tbody>
+      <tr>
+        <form action="/newCategoryItem" method="post" class="form-inline">
+          <input type="hidden" name="category" th:value="${selectedCategory}">
+          <td>
+            <input type="text" id="nameInput" class="form-control" placeholder="Enter name and unit" oninput="filterOptions()" required list="nameOptions" name="itemKey">
+            <datalist id="nameOptions">
+              <option th:each="item : ${items}" th:value="${item.itemKey}"></option>
+            </datalist>
+          </td>
+          <td><input type="number" class="form-control" placeholder="Amount Requested" name="requested" required></td>
+          <td><input type="number" class="form-control" value=0 name="given" required></td>
+          <td><button type="submit" class="btn btn-primary">Add Item</button></td>
+        </form>        
+      </tr>
       <tr th:each="categoryItem : ${categoryItems}">
         <td th:text="${categoryItem.itemKey}"></td>
         <td th:text="${categoryItem.requested}"></td>
@@ -135,20 +149,7 @@
           </form>
         </td>
       </tr>
-      <tr>
-        <form action="/newCategoryItem" method="post" class="form-inline">
-          <input type="hidden" name="category" th:value="${selectedCategory}">
-          <td>
-            <input type="text" id="nameInput" class="form-control" placeholder="Enter name and unit" oninput="filterOptions()" required list="nameOptions" name="itemKey">
-            <datalist id="nameOptions">
-              <option th:each="item : ${items}" th:value="${item.itemKey}"></option>
-            </datalist>
-          </td>
-          <td><input type="number" class="form-control" placeholder="Amount Requested" name="requested" required></td>
-          <td><input type="number" class="form-control" value=0 name="given" required></td>
-          <td><button type="submit" class="btn btn-primary">Add Item</button></td>
-        </form>        
-      </tr>
+      
     </tbody>
   </table>
 </div>

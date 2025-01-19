@@ -17,11 +17,27 @@ import edu.manipal.logistics.InventoryManager.business.entities.CategoryItem;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Controller
 @SessionAttributes()
 public class myController {
+
+    public static String cleanString(String input) {
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+        // Remove special characters but allow spaces, letters, and numbers
+        String cleaned = input.replaceAll("[^a-zA-Z0-9 ]", "");
+        // Replace multiple spaces with a single space
+        cleaned = cleaned.replaceAll("\\s+", " ");
+        // Trim leading and trailing spaces
+        cleaned = cleaned.trim();
+        // Convert to lowercase
+        cleaned = cleaned.toLowerCase();
+
+        return cleaned;
+    }
 
     private boolean isUserLoggedIn(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
@@ -29,36 +45,48 @@ public class myController {
     }
 
     @GetMapping("/")
-    public String loginPage(){
+    public String loginPage() {
         return "login";
     }
 
     @PostMapping("/login")
-    public String validLogin(HttpServletRequest req , Model model , @RequestParam String name , @RequestParam String password) {
+    public String validLogin(HttpServletRequest req, Model model, @RequestParam String name,
+            @RequestParam String password) {
         HttpSession session = req.getSession();
         session.setAttribute("name", name);
 
         LoginService service = new LoginService();
-        boolean isValidUser = service.validateUser(name , password);
-        if(!isValidUser){
-            model.addAttribute("errorMessage" , "Access Denied , Invalid Credentials");
+        boolean isValidUser = service.validateUser(name, password);
+        if (!isValidUser) {
+            model.addAttribute("errorMessage", "Access Denied , Invalid Credentials");
             return "redirect:/";
         }
 
-        model.addAttribute("name" , name);
-        model.addAttribute("password" , password);
+        model.addAttribute("name", name);
+        model.addAttribute("password", password);
 
         return "redirect:/categories";
     }
 
+    @PostMapping("/logout")
+    public String logout(HttpServletRequest req) {
+        HttpSession session = req.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+
+        return "redirect:/";
+    }
+
     @PostMapping("/createUser")
-    public String createUser(HttpServletRequest req , Model model , @RequestParam String name , @RequestParam String password) {
+    public String createUser(HttpServletRequest req, Model model, @RequestParam String name,
+            @RequestParam String password) {
         GoogleDatastore gd = new GoogleDatastore();
-        if(gd.existsUser(name)){
-            model.addAttribute("errorMessage" , "Username Taken");
+        if (gd.existsUser(name)) {
+            model.addAttribute("errorMessage", "Username Taken");
             return "redirect:/";
         }
-        
+
         UserInfo ui = new UserInfo();
         ui.setName(name);
         ui.setPassword(password);
@@ -68,7 +96,8 @@ public class myController {
     }
 
     @GetMapping("/categories")
-    public String categoriesPage(HttpServletRequest req, @RequestParam(value = "selectedCategory", required = false) String selectedCategory, Model model){
+    public String categoriesPage(HttpServletRequest req,
+            @RequestParam(value = "selectedCategory", required = false) String selectedCategory, Model model) {
         if (!isUserLoggedIn(req)) {
             return "redirect:/";
         }
@@ -76,7 +105,7 @@ public class myController {
         GoogleDatastore gd = new GoogleDatastore();
         List<Category> categories = gd.getAllCategory();
         model.addAttribute("categories", categories);
-    
+
         if (selectedCategory != null && !selectedCategory.isEmpty()) {
             List<CategoryItem> categoryItems = gd.getAllItemsInCategory(selectedCategory);
             model.addAttribute("categoryItems", categoryItems);
@@ -85,7 +114,7 @@ public class myController {
             List<InventoryItem> items = gd.getAllInventoryItems();
             model.addAttribute("items", items);
         }
-    
+
         return "categories";
     }
 
@@ -94,6 +123,7 @@ public class myController {
         if (!isUserLoggedIn(req)) {
             return "redirect:/";
         }
+        name = cleanString(name);
 
         Category c = new Category();
         c.setName(name);
@@ -113,10 +143,16 @@ public class myController {
     }
 
     @PostMapping("/newCategoryItem")
-    public String newCategoryItem(HttpServletRequest req, @RequestParam String category, @RequestParam String itemKey, @RequestParam Long requested, @RequestParam Long given) {
+    public String newCategoryItem(HttpServletRequest req, @RequestParam String category, @RequestParam String itemKey,
+            @RequestParam Long requested, @RequestParam Long given) {
         if (!isUserLoggedIn(req)) {
             return "redirect:/";
         }
+
+        category = cleanString(category);
+        itemKey = cleanString(itemKey);
+
+        // implement fuzzy matching here
 
         if (category.length() > 0 && itemKey.length() > 0) {
             CategoryItem ci = new CategoryItem();
@@ -127,7 +163,7 @@ public class myController {
 
             GoogleDatastore gd = new GoogleDatastore();
 
-            if(!gd.existsCategoryItem(itemKey , category)){
+            if (!gd.existsCategoryItem(itemKey, category)) {
                 InventoryItem ii = gd.getInventoryItem(itemKey);
                 ii.changeRequested(requested);
                 ii.changeGiven(given);
@@ -140,7 +176,7 @@ public class myController {
                 ii.setOrder(ii.getRequested() - ii.getQuantity() - ii.getGiven() + ii.getReceived());
                 gd.saveInventoryItem(ii);
             }
-            
+
             gd.saveCategoryItem(ci);
         }
 
@@ -148,7 +184,8 @@ public class myController {
     }
 
     @PostMapping("/deleteCategoryItem")
-    public String deleteCategoryItem(HttpServletRequest req, @RequestParam String category, @RequestParam String itemKey) {
+    public String deleteCategoryItem(HttpServletRequest req, @RequestParam String category,
+            @RequestParam String itemKey) {
         if (!isUserLoggedIn(req)) {
             return "redirect:/";
         }
@@ -156,18 +193,18 @@ public class myController {
         GoogleDatastore gd = new GoogleDatastore();
 
         InventoryItem ii = gd.getInventoryItem(itemKey);
-        CategoryItem ci = gd.getCategoryItem(itemKey , category);
+        CategoryItem ci = gd.getCategoryItem(itemKey, category);
         ii.changeRequested(-ci.getRequested());
         ii.changeGiven(-ci.getGiven());
         ii.setOrder(ii.getRequested() - ii.getQuantity() - ii.getGiven() + ii.getReceived());
 
-        if(ii.getQuantity() == 0 && ii.getRequested() == 0 && ii.getGiven() == 0)
+        if (ii.getQuantity() == 0 && ii.getRequested() == 0 && ii.getGiven() == 0)
             gd.deleteInventoryItem(itemKey);
         else
             gd.saveInventoryItem(ii);
-                
+
         gd.deleteCategoryItem(itemKey, category);
-    
+
         return "redirect:/categories?selectedCategory=" + category;
     }
 
@@ -178,24 +215,26 @@ public class myController {
         }
 
         GoogleDatastore gd = new GoogleDatastore();
-        List<InventoryItem> items = gd.getAllInventoryItems();
+        List<InventoryItem> items = gd.getItemsToOrder();
         model.addAttribute("items", items);
 
         return "itemList";
     }
 
     @PostMapping("/changeItem")
-    public String changeRecieved(HttpServletRequest req, @RequestParam String itemKey , @RequestParam Long received , @RequestParam String vendor) {
+    public String changeRecieved(HttpServletRequest req, @RequestParam String itemKey, @RequestParam Long received,
+            @RequestParam String vendor) {
         if (!isUserLoggedIn(req)) {
             return "redirect:/";
         }
 
+        vendor = cleanString(vendor);
         GoogleDatastore gd = new GoogleDatastore();
         InventoryItem ii = gd.getInventoryItem(itemKey);
         ii.changeReceived(received);
         ii.setVendor(vendor);
         gd.saveInventoryItem(ii);
-        
+
         return "redirect:/itemList";
     }
 
@@ -213,12 +252,15 @@ public class myController {
     }
 
     @PostMapping("/newItem")
-    public String newItem(HttpServletRequest req, @RequestParam String itemKey , @RequestParam Long quantity , @RequestParam Long requested) {
+    public String newItem(HttpServletRequest req, @RequestParam String itemKey, @RequestParam Long quantity,
+            @RequestParam Long requested) {
         if (!isUserLoggedIn(req)) {
             return "redirect:/";
         }
 
-        if(itemKey.length() > 0 && quantity > 0){
+        itemKey = cleanString(itemKey);
+
+        if (itemKey.length() > 0 && quantity > 0) {
             InventoryItem ii = new InventoryItem();
             ii.setItemKey(itemKey);
             ii.setQuantity(quantity);
@@ -227,7 +269,14 @@ public class myController {
             GoogleDatastore gd = new GoogleDatastore();
             gd.saveInventoryItem(ii);
         }
-        
+
+        return "redirect:/inventoryList";
+    }
+
+    @PostMapping("/changeName")
+    public String postMethodName(HttpServletRequest req, @RequestParam String oldItemKey,
+            @RequestParam String newItemKey) {
+
         return "redirect:/inventoryList";
     }
 
@@ -239,7 +288,7 @@ public class myController {
 
         GoogleDatastore gd = new GoogleDatastore();
         InventoryItem ii = gd.getInventoryItem(deleteKey);
-        if(ii.getRequested() == 0)
+        if (ii.getRequested() == 0)
             gd.deleteInventoryItem(deleteKey);
 
         return "redirect:/inventoryList";

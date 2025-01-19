@@ -86,6 +86,14 @@
       </tr>
     </thead>
     <tbody>
+      <tr>
+        <form action="/newItem" method="post" class="form-inline">
+          <td><input type="text" class="form-control" placeholder="Enter name and unit" name="itemKey" required></td>
+          <td><input type="number" class="form-control" placeholder="Enter quantity" name="quantity" required></td>
+          <input type="hidden" value="0" name="requested" />
+          <td><button type="submit" class="btn btn-primary">Add Item</button></td>
+        </form>
+      </tr>
       <tr th:each="item : ${items}">
         <td th:text="${item.itemKey}"></td>
         <td class="quantityRow" th:text="${item.quantity}"></td>
@@ -105,14 +113,7 @@
           </form>
         </td>
       </tr>
-      <tr>
-        <form action="/newItem" method="post" class="form-inline">
-          <td><input type="text" class="form-control" placeholder="Enter name and unit" name="itemKey" required></td>
-          <td><input type="number" class="form-control" placeholder="Enter quantity" name="quantity" required></td>
-          <input type="hidden" value="0" name="requested" />
-          <td><button type="submit" class="btn btn-primary">Add Item</button></td>
-        </form>
-      </tr>
+
     </tbody>
   </table>
 </div>

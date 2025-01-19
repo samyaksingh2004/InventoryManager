@@ -4,14 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-  <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>-->
 
   <style>
     .hidden-display {
       display: none;
     }
   </style>
+
+  <!-- Include the XLSX library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.2/xlsx.full.min.js"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -45,6 +46,12 @@
       });
 
     });
+
+    function exportReportToExcel() {
+      var table = document.getElementById("inventoryItemList");
+      var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet 1" });
+      XLSX.writeFile(wb, "file.xlsx");
+    }
   </script>
 </head>
 <body>
@@ -72,10 +79,15 @@
               <input type="hidden" th:value="${item.itemKey}" name="itemKey"/>
               <input type="hidden" th:value="${item.order}" name="order">
               <input type="number" th:value="${item.received}" name="received" class="form-control" required>
+              <input type="hidden" th:value="${item.vendor}" name="vendor">
+              <button type="submit" class="btn btn-success editFormSubmit">&#x2705;</button>
             </form>
           </td>
           <td class="vendorForm hidden-display">
             <form action="/changeItem" method="post" class="form-inline">
+              <input type="hidden" th:value="${item.itemKey}" name="itemKey"/>
+              <input type="hidden" th:value="${item.order}" name="order">
+              <input type="hidden" th:value="${item.received}" name="received">
               <input type="text" th:value="${item.vendor}" name="vendor" class="form-control" required>
               <button type="submit" class="btn btn-success editFormSubmit">&#x2705;</button>
             </form>
@@ -87,6 +99,8 @@
       </tbody>
     </table>
   </div>
+
+  <button id="btnExport" onclick="exportReportToExcel()">Export HTML Table</button>
 
 </body>
 </html>
