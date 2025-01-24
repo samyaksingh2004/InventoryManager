@@ -147,6 +147,43 @@ public class GoogleDatastore {
 		}
 	}
 
+	public void saveInventoryItemList(List<InventoryItem> li) {
+		try {
+			for (InventoryItem ii : li) {
+				Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
+				String kind = ii.getClass().getSimpleName();
+				KeyFactory keyFactory = datastore.newKeyFactory().setKind(kind);
+				Key key;
+
+				if (ii.getItemId() != 0L) {
+					key = keyFactory.newKey(ii.getItemId());
+				} else {
+					// Key key = keyFactory.newKey(ii.getItemKey());
+					key = datastore.allocateId(keyFactory.newKey());
+					ii.setItemId(key.getId());
+				}
+
+				Entity entity = Entity.newBuilder(key)
+						.set("itemId", ii.getItemId())
+						.set("itemKey", ii.getItemKey())
+						.set("quantity", ii.getQuantity())
+						.set("requested", ii.getRequested())
+						.set("given", ii.getGiven())
+						.set("order", ii.getOrder())
+						.set("received", ii.getReceived())
+						.set("vendor", ii.getVendor())
+						.build();
+
+				Entity savedEntity = datastore.put(entity); // Use datastore.put() for both create and update
+
+				// Set itemId for new items
+				ii.setItemId(savedEntity.getKey().getId());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	public InventoryItem getInventoryItem(String itemKey) {
 		try {
 			Datastore datastore = DatastoreOptions.getDefaultInstance().getService();

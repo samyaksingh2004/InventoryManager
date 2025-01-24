@@ -1,7 +1,9 @@
 package edu.manipal.logistics.InventoryManager.Controller;
 
+import org.apache.poi.ss.usermodel.*;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.springframework.stereotype.Controller;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.ui.Model;
 
 import edu.manipal.logistics.InventoryManager.business.database.GoogleDatastore;
@@ -340,6 +343,46 @@ public class myController {
             gd.saveInventoryItem(ii);
         }
 
+        return "redirect:/inventoryList";
+    }
+
+    @PostMapping("/uploadInventoryItemExcel")
+    public String uploadInventoryItemExcel(HttpServletRequest req, @RequestParam MultipartFile file) {
+        try {
+            Workbook workbook = WorkbookFactory.create(file.getInputStream());
+            Sheet sheet = workbook.getSheetAt(0);
+
+            GoogleDatastore gd = new GoogleDatastore();
+            List<InventoryItem> li = new ArrayList<InventoryItem>();
+
+            for (int i = 1; i <= sheet.getLastRowNum() && i < 500; i++) {
+                Row row = sheet.getRow(i);
+                if (row == null)
+                    continue;
+
+                Cell itemKeyCell = row.getCell(0);
+                Cell quantityCell = row.getCell(1);
+
+                if (itemKeyCell == null || quantityCell == null)
+                    break;
+
+                String itemKey = itemKeyCell.getStringCellValue();
+                itemKey = cleanString(itemKey);
+                Long quantity = (long) quantityCell.getNumericCellValue();
+
+                if (itemKey.length() == 0 || quantity == 0L)
+                    break;
+
+                InventoryItem ii = new InventoryItem();
+                ii.setItemKey(itemKey);
+                ii.setQuantity(quantity);
+                li.add(ii);
+            }
+            System.err.println();
+            gd.saveInventoryItemList(li);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return "redirect:/inventoryList";
     }
 
