@@ -2,62 +2,52 @@ package edu.manipal.logistics.InventoryManager.business.entities;
 
 import com.google.cloud.datastore.Entity;
 
-import edu.manipal.logistics.InventoryManager.business.database.GoogleDatastore;
-
 public class CategoryItem {
     private String categoryKey;
-    private String itemKey;
+    private Long itemId;
     private Long requested;
     private Long given;
 
-    public CategoryItem(){
+    public CategoryItem() {
         requested = 0L;
         given = 0L;
     }
 
-    public void setCategoryKey(String categoryKey){
+    public void setCategoryKey(String categoryKey) {
         this.categoryKey = categoryKey;
     }
 
-    public void setItemKey(String itemKey){
-        GoogleDatastore gd = new GoogleDatastore();
-        if(!gd.existsInventoryItem(itemKey)){
-            InventoryItem ii = new InventoryItem();
-            ii.setItemKey(itemKey);
-            gd.saveInventoryItem(ii);
-        }
-        // create new inventoryItem
-
-        this.itemKey = itemKey;
+    public void setItemId(Long itemId) {
+        this.itemId = itemId;
     }
 
-    public void setRequested(Long requested){
+    public void setRequested(Long requested) {
         this.requested = requested;
     }
 
-    public void setGiven(Long given){
+    public void setGiven(Long given) {
         this.given = given;
     }
 
-    public String getCategoryKey(){
+    public String getCategoryKey() {
         return categoryKey;
     }
 
-    public String getItemKey(){
-        return itemKey;
+    public Long getItemId() {
+        return itemId;
     }
 
-    public Long getRequested(){
+    public Long getRequested() {
         return requested;
     }
 
-    public Long getGiven(){
+    public Long getGiven() {
         return given;
     }
 
-    public void setEntity(Entity ent){
+    public void setEntity(Entity ent) {
         setCategoryKey(ent.getString("categoryKey"));
-        setItemKey(ent.getString("itemKey"));
+        setItemId(ent.getLong("itemId"));
         setRequested(ent.getLong("requested"));
         setGiven(ent.getLong("given"));
     }

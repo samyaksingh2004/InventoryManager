@@ -3,7 +3,8 @@ package edu.manipal.logistics.InventoryManager.business.entities;
 import com.google.cloud.datastore.Entity;
 
 public class InventoryItem {
-    private String itemKey;
+    private Long itemId; // surrogate key
+    private String itemKey; // unique constraint given
     private Long quantity;
     private Long requested;
     private Long given;
@@ -11,7 +12,8 @@ public class InventoryItem {
     private Long received;
     private String vendor;
 
-    public InventoryItem(){
+    public InventoryItem() {
+        itemId = 0L;
         quantity = 0L;
         requested = 0L;
         given = 0L;
@@ -20,81 +22,94 @@ public class InventoryItem {
         vendor = "None";
     }
 
-    public void setItemKey(String itemKey){
+    public void setItemId(Long itemid) {
+        this.itemId = itemid;
+    }
+
+    public void setItemKey(String itemKey) {
+        // set itemId here as well
+        if (itemId != 0L) {
+
+        }
         this.itemKey = itemKey;
     }
 
-    public void setQuantity(Long quantity){
+    public void setQuantity(Long quantity) {
         this.quantity = quantity;
     }
 
-    public void setRequested(Long requested){
+    public void setRequested(Long requested) {
         this.requested = requested;
     }
 
-    public void setGiven(Long given){
+    public void setGiven(Long given) {
         this.given = given;
     }
 
-    public void setOrder(Long order){
+    public void setOrder(Long order) {
         this.order = order;
     }
 
-    public void setReceived(Long received){
+    public void setReceived(Long received) {
         this.received = received;
     }
 
-    public void setVendor(String vendor){
+    public void setVendor(String vendor) {
         this.vendor = vendor;
     }
 
-    public void changeQuantity(Long change){
+    public void changeQuantity(Long change) {
         this.quantity += change;
     }
 
-    public void changeRequested(Long change){
+    public void changeRequested(Long change) {
         this.requested += change;
     }
 
-    public void changeReceived(Long change){
+    public void changeReceived(Long change) {
         this.quantity = this.quantity - this.received + change;
         this.received = change;
     }
 
-    public void changeGiven(Long change){
+    public void changeGiven(Long change) {
         this.quantity -= change;
         this.given += change;
     }
 
-    public String getItemKey(){
+    public Long getItemId() {
+        return this.itemId;
+    }
+
+    public String getItemKey() {
         return this.itemKey;
     }
 
-    public Long getQuantity(){
+    public Long getQuantity() {
         return this.quantity;
     }
 
-    public Long getRequested(){
+    public Long getRequested() {
         return this.requested;
     }
 
-    public Long getGiven(){
+    public Long getGiven() {
         return this.given;
     }
 
-    public Long getOrder(){
+    public Long getOrder() {
         return this.order;
     }
 
-    public Long getReceived(){
+    public Long getReceived() {
         return this.received;
     }
 
-    public String getVendor(){
+    public String getVendor() {
         return this.vendor;
     }
 
-    public void setEntity(Entity ent){
+    public void setEntity(Entity ent) {
+        setItemId(ent.getLong("itemId"));
         setItemKey(ent.getString("itemKey"));
         setQuantity(ent.getLong("quantity"));
         setRequested(ent.getLong("requested"));

@@ -1,6 +1,9 @@
 package edu.manipal.logistics.InventoryManager.Controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -108,8 +111,18 @@ public class myController {
 
         if (selectedCategory != null && !selectedCategory.isEmpty()) {
             List<CategoryItem> categoryItems = gd.getAllItemsInCategory(selectedCategory);
+
+            Map<Long, InventoryItem> inventoryItemMap = new HashMap<>();
+            for (CategoryItem categoryItem : categoryItems) {
+                InventoryItem item = gd.getInventoryItem(categoryItem.getItemId());
+                if (item != null) {
+                    inventoryItemMap.put(item.getItemId(), item);
+                }
+            }
+
             model.addAttribute("categoryItems", categoryItems);
             model.addAttribute("selectedCategory", selectedCategory);
+            model.addAttribute("inventoryItemMap", inventoryItemMap);
 
             List<InventoryItem> items = gd.getAllInventoryItems();
             model.addAttribute("items", items);
@@ -155,29 +168,76 @@ public class myController {
         // implement fuzzy matching here
 
         if (category.length() > 0 && itemKey.length() > 0) {
+            GoogleDatastore gd = new GoogleDatastore();
+
             CategoryItem ci = new CategoryItem();
+            InventoryItem ii;
+            if (gd.existsInventoryItem(itemKey)) {
+                ii = gd.getInventoryItem(itemKey);
+            } else {
+                ii = new InventoryItem();
+                ii.setItemKey(itemKey);
+                gd.saveInventoryItem(ii);
+            }
+
             ci.setCategoryKey(category);
-            ci.setItemKey(itemKey);
+            ci.setItemId(ii.getItemId());
             ci.setGiven(given);
             ci.setRequested(requested);
 
-            GoogleDatastore gd = new GoogleDatastore();
-
             if (!gd.existsCategoryItem(itemKey, category)) {
-                InventoryItem ii = gd.getInventoryItem(itemKey);
                 ii.changeRequested(requested);
                 ii.changeGiven(given);
                 ii.setOrder(ii.getRequested() - ii.getQuantity() - ii.getGiven() + ii.getReceived());
                 gd.saveInventoryItem(ii);
             } else {
                 CategoryItem oldci = gd.getCategoryItem(itemKey, category);
-                InventoryItem ii = gd.getInventoryItem(itemKey);
                 ii.changeGiven(given - oldci.getGiven());
+                ii.changeRequested(requested - oldci.getRequested());
                 ii.setOrder(ii.getRequested() - ii.getQuantity() - ii.getGiven() + ii.getReceived());
                 gd.saveInventoryItem(ii);
             }
 
             gd.saveCategoryItem(ci);
+        }
+
+        return "redirect:/categories?selectedCategory=" + category;
+    }
+
+    @PostMapping("/editItemName")
+    public String editItemName(HttpServletRequest req, @RequestParam String category, @RequestParam Long itemId,
+            @RequestParam String newName) {
+        try {
+            GoogleDatastore gd = new GoogleDatastore();
+            CategoryItem ci = gd.getCategoryItem(itemId, category);
+            InventoryItem oldii = gd.getInventoryItem(itemId);
+            oldii.changeRequested(-ci.getRequested());
+            oldii.changeGiven(-ci.getGiven());
+
+            oldii.setOrder(oldii.getRequested() - oldii.getQuantity() - oldii.getGiven() + oldii.getReceived());
+
+            gd.deleteCategoryItem(category, oldii.getItemId());
+
+            InventoryItem ii;
+            if (gd.existsInventoryItem(newName)) {
+                ii = gd.getInventoryItem(newName);
+            } else {
+                ii = new InventoryItem();
+                ii.setItemKey(newName);
+                gd.saveInventoryItem(ii);
+            }
+
+            ci.setItemId(ii.getItemId());
+            ii.changeGiven(ci.getGiven());
+            ii.changeRequested(ci.getRequested());
+
+            ii.setOrder(ii.getRequested() - ii.getQuantity() - ii.getGiven() + ii.getReceived());
+
+            gd.saveInventoryItem(oldii);
+            gd.saveInventoryItem(ii);
+            gd.saveCategoryItem(ci);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return "redirect:/categories?selectedCategory=" + category;
@@ -198,12 +258,12 @@ public class myController {
         ii.changeGiven(-ci.getGiven());
         ii.setOrder(ii.getRequested() - ii.getQuantity() - ii.getGiven() + ii.getReceived());
 
+        gd.deleteCategoryItem(itemKey, category);
+
         if (ii.getQuantity() == 0 && ii.getRequested() == 0 && ii.getGiven() == 0)
             gd.deleteInventoryItem(itemKey);
         else
             gd.saveInventoryItem(ii);
-
-        gd.deleteCategoryItem(itemKey, category);
 
         return "redirect:/categories?selectedCategory=" + category;
     }
@@ -261,21 +321,36 @@ public class myController {
         itemKey = cleanString(itemKey);
 
         if (itemKey.length() > 0 && quantity > 0) {
-            InventoryItem ii = new InventoryItem();
+            InventoryItem ii;
+            GoogleDatastore gd = new GoogleDatastore();
+            Long change = 0L;
+
+            if (gd.existsInventoryItem(itemKey)) {
+                ii = gd.getInventoryItem(itemKey);
+                change = quantity - ii.getQuantity();
+            } else {
+                ii = new InventoryItem();
+            }
             ii.setItemKey(itemKey);
             ii.setQuantity(quantity);
             ii.setRequested(requested);
 
-            GoogleDatastore gd = new GoogleDatastore();
+            ii.setOrder(ii.getOrder() - change);
+
             gd.saveInventoryItem(ii);
         }
 
         return "redirect:/inventoryList";
     }
 
-    @PostMapping("/changeName")
-    public String postMethodName(HttpServletRequest req, @RequestParam String oldItemKey,
-            @RequestParam String newItemKey) {
+    @PostMapping("/editInventoryItemName")
+    public String editInvantoryItemName(HttpServletRequest req, @RequestParam Long itemId,
+            @RequestParam String newName) {
+
+        GoogleDatastore gd = new GoogleDatastore();
+        InventoryItem ii = gd.getInventoryItem(itemId);
+        ii.setItemKey(newName);
+        gd.saveInventoryItem(ii);
 
         return "redirect:/inventoryList";
     }
@@ -288,7 +363,7 @@ public class myController {
 
         GoogleDatastore gd = new GoogleDatastore();
         InventoryItem ii = gd.getInventoryItem(deleteKey);
-        if (ii.getRequested() == 0)
+        if (ii.getRequested() <= 0)
             gd.deleteInventoryItem(deleteKey);
 
         return "redirect:/inventoryList";
